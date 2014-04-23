@@ -1,7 +1,9 @@
 #!/usr/bin/env python
-# a bar plot with errorbars
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.lines as lines
+import matplotlib.transforms as mtransforms
+import matplotlib.text as mtext
 import os, re, time
 from datetime import datetime
 
@@ -23,75 +25,89 @@ def getAllHomeFolder(x, dir_name, files):
             homeDirList.append(fullPath)
 os.path.walk(homeDir, getAllHomeFolder, 0)
 
-#get user input
-search = raw_input("Enter search term: ")
-search_term = re.compile(search)
+#Defines line graph
+class MyLine(lines.Line2D):
+   def __init__(self, *args, **kwargs):
+      # we'll update the position when the line data is set
+      self.text = mtext.Text(0, 0, '')
+      lines.Line2D.__init__(self, *args, **kwargs)
 
-#This searches our list of email files for the expression which the user entered
-for entry in homeDirList:
-    #variables needed to handle every file
-    date = re.compile("Date: ")
-    fileList = list()
-    dateFound = False
+      # we can't access the label attr until *after* the line is initialized
+      self.text.set_text(self.get_label())
 
-    #open file
-    fileObject = open(entry, "r")
+   def set_figure(self, figure):
+      self.text.set_figure(figure)
+      lines.Line2D.set_figure(self, figure)
 
-    #search every line in the file 
-    for line in fileObject:
-        #Finds first line in the file containing date
-        if(date.findall(line) and dateFound == False):
-            subline = line[6:31]
-            if (subline[6]==" "):
-                subline = subline[0:24]
-            #timeValue = time.strptime(subline, '%a, %d %b %Y %H:%M:%S')
-            date_object = datetime.strptime(subline, '%a, %d %b %Y %H:%M:%S')
-            fileList.append(date_object)
-            dateFound = True
+   def set_axes(self, axes):
+      self.text.set_axes(axes)
+      lines.Line2D.set_axes(self, axes)
 
-        #logs file name and date if the search term is found
-        if (search_term.findall(line)):
-            fileList.append(entry)
-            listOfMatchingFiles.append(fileList)
-            break
+   def set_transform(self, transform):
+      # 2 pixel offset
+      texttrans = transform + mtransforms.Affine2D().translate(2, 2)
+      self.text.set_transform(texttrans)
+      lines.Line2D.set_transform(self, transform)
 
-for entry in listOfMatchingFiles:
-    for item in entry:
-        print item
-    
-def barGraph(title):
-    N = 5
-    menMeans = (20, 35, 30, 35, 27)
-    menStd =   (2, 3, 4, 1, 2)
 
-    ind = np.arange(N)  # the x locations for the groups
-    width = 0.35       # the width of the bars
+   def set_data(self, x, y):
+      if len(x):
+         self.text.set_position((x[-1], y[-1]))
+
+      lines.Line2D.set_data(self, x, y)
+
+   def draw(self, renderer):
+      # draw my label at the end of the line with 2 pixel offset
+      lines.Line2D.draw(self, renderer)
+      self.text.draw(renderer)
+
+def graphBySearchTerm():
+    #get user input
+    search = raw_input("Enter search term: ")
+    search_term = re.compile(search)
+
+    #This searches our list of email files for the expression which the user entered
+    for entry in homeDirList:
+        #variables needed to handle every file
+        date = re.compile("Date: ")
+        fileList = list()
+        dateFound = False
+
+        #open file
+        fileObject = open(entry, "r")
+
+        #search every line in the file 
+        for line in fileObject:
+            #Finds first line in the file containing date
+            if(date.findall(line) and dateFound == False):
+                subline = line[6:31]
+                if (subline[6]==" "):
+                    subline = subline[0:24]
+                #timeValue = time.strptime(subline, '%a, %d %b %Y %H:%M:%S')
+                date_object = datetime.strptime(subline, '%a, %d %b %Y %H:%M:%S')
+                fileList.append(date_object)
+                dateFound = True
+
+            #logs file name and date if the search term is found
+            if (search_term.findall(line)):
+                fileList.append(entry)
+                listOfMatchingFiles.append(fileList)
+                break
+
+    for entry in listOfMatchingFiles:
+        for item in entry:
+            print item
+
+def main():
 
     fig, ax = plt.subplots()
-    rects1 = ax.bar(ind, menMeans, width, color='r', yerr=menStd)
+    x, y = ([0,1,2], [0,1,2])
+    line = MyLine(x, y)
+    #line.text.set_text('line label')
 
-    womenMeans = (25, 32, 34, 20, 25)
-    womenStd =   (3, 5, 2, 3, 3)
-    rects2 = ax.bar(ind+width, womenMeans, width, color='y', yerr=womenStd)
-
-    # add some
-    ax.set_ylabel('Scores')
-    ax.set_title(title)
-    ax.set_xticks(ind+width)
-    ax.set_xticklabels( ('G1', 'G2', 'G3', 'G4', 'G5') )
-
-    ax.legend( (rects1[0], rects2[0]), ('Men', 'Women') )
-
-    def autolabel(rects):
-        # attach some text labels
-        for rect in rects:
-            height = rect.get_height()
-            ax.text(rect.get_x()+rect.get_width()/2., 1.05*height, '%d'%int(height),
-                    ha='center', va='bottom')
-
-    autolabel(rects1)
-    autolabel(rects2)
+    ax.set_title('Frequency of Search Term Over Time')
+    ax.add_line(line)
 
     plt.show()
 
-barGraph("Frequency of Search Term")
+main()
