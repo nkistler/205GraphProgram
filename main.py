@@ -9,13 +9,13 @@ from datetime import datetime
 
 #global variables
 homeDir = "/home/nathan/gmail-archive/"
-homeDirList = list()
-listOfMatchingFiles = list()
+homeDirList = list() #contains our set of email to search
+listOfMatchingFiles = list() #contains emails that match our query
 
 #initialize needed modules
 os.system("getmail -r /home/nathan/.getmail/getmailrc")
 
-#This allows us to recursively search our "home" directory. Places all possible audio file paths in homeDirList.
+#This allows us to recursively search our "home" directory. Places all possible email message file paths in homeDirList.
 def getAllHomeFolder(x, dir_name, files): 
     for item in files:
 	fullPath = dir_name + "/" + item
@@ -80,10 +80,9 @@ def graphBySearchTerm():
         for line in fileObject:
             #Finds first line in the file containing date
             if(date.findall(line) and dateFound == False):
-                subline = line[6:31]
-                if (subline[6]==" "):
+                subline = line[6:31]#this grabs the formatted date out of the line
+                if (subline[6]==" "):#this handles case where day of the month is only one digit
                     subline = subline[0:24]
-                #timeValue = time.strptime(subline, '%a, %d %b %Y %H:%M:%S')
                 date_object = datetime.strptime(subline, '%a, %d %b %Y %H:%M:%S')
                 fileList.append(date_object)
                 dateFound = True
@@ -98,10 +97,11 @@ def graphBySearchTerm():
         for item in entry:
             print item
 
+#contains main program loop
 def main():
 
     fig, ax = plt.subplots()
-    x, y = ([0,1,2], [0,1,2])
+    x, y = ([0,1,2], [0,1,1])#set of x should be our time value and set of y should be our frequency value
     line = MyLine(x, y)
     #line.text.set_text('line label')
 
