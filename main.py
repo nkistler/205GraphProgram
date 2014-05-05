@@ -8,11 +8,13 @@ import matplotlib.transforms as mtransforms
 import matplotlib.text as mtext
 import os, re, time
 from datetime import datetime
+from datetime import timedelta
 
 #global variables
 homeDir = "/home/nathan/gmail-archive/"
 homeDirList = list() #contains our set of email to search
 listOfMatchingFiles = list() #contains emails that match our query
+listOfXValues = list() #contains list of three month intervals within date range
 
 #initialize needed modules
 os.system("getmail -r /home/nathan/.getmail/getmailrc")
@@ -67,11 +69,16 @@ def graphBySearchTerm():
     #get user input
     search = raw_input("Enter search term: ")
     search_term = re.compile(search)
-    start = raw_input("Enter start date: (Ex. 2 Feb 2012 15:36:58)")
-    start_date = datetime.strptime(start, '%d %b %Y %H:%M:%S')
+    start = raw_input("Enter start date: (Ex. 2 Feb 2012)")
+    start_date = datetime.strptime(start, '%d %b %Y')
     end = raw_input("Enter end date: ");
-    end_date = datetime.strptime(end, '%d %b %Y %H:%M:%S')
-    date_range = end_date - start_date
+    end_date = datetime.strptime(end, '%d %b %Y')
+
+    #get list of x values (every 3 months within range of start and end dates)
+    three_months = timedelta(91, 26827, 2)
+    while (start_date < end_date):
+        start_date = start_date + three_months
+        listOfXValues.append(start_date);
 
     #This searches our list of email files for the expression which the user entered
     for entry in homeDirList:
@@ -99,12 +106,13 @@ def graphBySearchTerm():
                 fileList.append(entry)
                 listOfMatchingFiles.append(fileList)
                 break
-
+    for entry in listOfXValues:
+        print entry
     for entry in listOfMatchingFiles:
         for item in entry:
             print item
 
-#contains main program loop
+#Contains main program loop. New modules can be added here.
 def main():
 
     graphBySearchTerm()
@@ -118,5 +126,6 @@ def main():
 
     plt.show()
 
+#Execute
 main()
 
