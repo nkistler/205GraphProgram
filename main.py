@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+#Program to graph frequency of a term in user's email over time
+#Requires getmail utility
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.lines as lines
@@ -65,6 +67,11 @@ def graphBySearchTerm():
     #get user input
     search = raw_input("Enter search term: ")
     search_term = re.compile(search)
+    start = raw_input("Enter start date: (Ex. 2 Feb 2012 15:36:58)")
+    start_date = datetime.strptime(start, '%d %b %Y %H:%M:%S')
+    end = raw_input("Enter end date: ");
+    end_date = datetime.strptime(end, '%d %b %Y %H:%M:%S')
+    date_range = end_date - start_date
 
     #This searches our list of email files for the expression which the user entered
     for entry in homeDirList:
@@ -100,6 +107,7 @@ def graphBySearchTerm():
 #contains main program loop
 def main():
 
+    graphBySearchTerm()
     fig, ax = plt.subplots()
     x, y = ([0,1,2], [0,1,1])#set of x should be our time value and set of y should be our frequency value
     line = MyLine(x, y)
@@ -111,3 +119,4 @@ def main():
     plt.show()
 
 main()
+
