@@ -15,6 +15,8 @@ homeDir = "/home/nathan/gmail-archive/"
 homeDirList = list() #contains our set of email to search
 listOfMatchingFiles = list() #contains emails that match our query
 listOfXValues = list() #contains list of three month intervals within date range
+listOfYValues = list() #contains frequency of term with each index containing the frequency of one quarter
+listOfDates = list() #contains list of dates, corrosponds to list of matching files
 
 #initialize needed modules
 os.system("getmail -r /home/nathan/.getmail/getmailrc")
@@ -77,8 +79,9 @@ def graphBySearchTerm():
     #get list of x values (every 3 months within range of start and end dates)
     three_months = timedelta(91, 26827, 2)
     while (start_date < end_date):
-        start_date = start_date + three_months
         listOfXValues.append(start_date);
+        start_date = start_date + three_months
+    listOfXValues.append(end_date)
 
     #This searches our list of email files for the expression which the user entered
     for entry in homeDirList:
@@ -103,10 +106,26 @@ def graphBySearchTerm():
 
             #logs file name and date if the search term is found
             if (search_term.findall(line)):
+                listOfDates.append(fileList[-1])
                 fileList.append(entry)
                 listOfMatchingFiles.append(fileList)
                 break
+    
+    #initialize y values to zero
+    for x in xrange(len(listOfXValues)):
+        listOfYValues.append(0);
+    
+    #Check dates of each file, check which date range they fit into, and add a +1 for frequency of term (our Y value)
+    for x in xrange(len(listOfDates)):
+        for y in xrange(len(listOfXValues)-1):
+            if listOfDates[x] >= listOfXValues[y] and listOfDates[x] < listOfXValues[y+1]:
+                listOfYValues[y] = listOfYValues[y]+1
+                
+
+    #This is just used to make sure we have the correct output
     for entry in listOfXValues:
+        print entry
+    for entry in listOfYValues:
         print entry
     for entry in listOfMatchingFiles:
         for item in entry:
@@ -117,7 +136,7 @@ def main():
 
     graphBySearchTerm()
     fig, ax = plt.subplots()
-    x, y = ([0,1,2], [0,1,1])#set of x should be our time value and set of y should be our frequency value
+    x, y = (listOfXValues, listOfYValues)#set of x should be our time value and set of y should be our frequency value
     line = MyLine(x, y)
     #line.text.set_text('line label')
 
