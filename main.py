@@ -14,9 +14,9 @@ from datetime import timedelta
 homeDir = "/home/nathan/gmail-archive/"
 homeDirList = list() #contains our set of email to search
 listOfMatchingFiles = list() #contains emails that match our query
-listOfXValues = list() #assigns number for each quarter
-listOfXValuesAsDate = list() #contains list of three month intervals within date range
-listOfYValues = list() #contains frequency of term with each index containing the frequency of one quarter
+listOfXValues = list() #assigns number for each interval
+listOfYValues = list() #contains frequency of the search term
+listOfXValuesAsDate = list() #contains list of dates which define interval
 listOfFileDates = list() #contains list of dates, corrosponds to list of matching files
 
 #initialize needed modules
@@ -39,6 +39,11 @@ def graphBySearchTerm():
     interval = ""
     dateRE = re.compile(r'([0-9]*) ([A-z]{3}) ([0-9]{4})')
     date = re.compile("Date: ")
+    del listOfMatchingFiles[:]
+    del listOfXValues[:]
+    del listOfYValues[:]
+    del listOfXValuesAsDate[:]
+    del listOfFileDates[:]
 
     #get user input
     search = raw_input("Enter search term: ")
@@ -106,10 +111,10 @@ def graphBySearchTerm():
    
     
     #Check dates of each file, check which date range they fit into, and add a +1 for frequency of term (our Y value)
-    for x in xrange(len(listOfFileDates)-1):
-        for y in xrange(len(listOfXValuesAsDate)-1):
-            if (listOfFileDates[x] >= listOfXValuesAsDate[y] and listOfFileDates[x] < listOfXValuesAsDate[y+1]):
-                listOfYValues[y] = listOfYValues[y]+1
+    for y in xrange(len(listOfFileDates)-1):
+        for z in xrange(len(listOfXValuesAsDate)-1):
+            if (listOfFileDates[y] >= listOfXValuesAsDate[z] and listOfFileDates[y] < listOfXValuesAsDate[z+1]):
+                listOfYValues[z] = listOfYValues[z]+1
                 
 
     #This is just used to make sure we have the correct output
@@ -121,7 +126,7 @@ def graphBySearchTerm():
         for item in entry:
             print item
     
-    return interval
+    return interval+start+"-"+end
 
 #Contains main program loop. New modules can be added here.
 def main():
@@ -134,10 +139,10 @@ def main():
         plt.xlabel('Time')
         plt.ylabel('Frequency')
 
-        if (timeInterval == "Q"):
-            plt.title('Search Term Frequency By Quarter')
+        if (re.search(r"Q", timeInterval)):
+            plt.title('Search Term Frequency By Quarter '+timeInterval[1:len(timeInterval)])
         else:
-            plt.title('Search Term Frequency By Month')
+            plt.title('Search Term Frequency By Month '+timeInterval[1:len(timeInterval)])
 
         plt.show()
 
